@@ -1,3 +1,4 @@
+import { mongoose } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../models/user.js";
 
@@ -9,7 +10,7 @@ export const getAllUser = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
-    res.status(404).json({ message: error.message, code: error.code });
+    res.status(404).json({ code: res.statusCode, message: error.message });
   }
 };
 
@@ -23,25 +24,35 @@ export const insertUser = async (req, res) => {
 
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(409).json({ message: error.message, code: error.code });
+    res.status(409).json({ code: res.statusCode, message: error.message });
   }
 };
 
 export const getUserByID = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return res.status(404).json({ message: "id non conforme con mongo" });
   try {
     const user = await User.findById(id);
 
     res.status(200).json(user);
   } catch (error) {
-    res.status(404).json({ message: error.message, code: error.code });
+    res.status(404).json({ code: res.statusCode, message: error.message });
   }
 };
 
-export const deleteUser = (req, res) => {
+export const deleteUser = async (req, res) => {
   const { id } = req.params;
-  users = users.filter((user) => user.id != id);
-  res.send(`Utente con id ${id} è stato eliminato con successo`);
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return res.status(404).json({ message: "id non conforme con mongo" });
+
+  try {
+    await User.findByIdAndDelete(id);
+    res.json({ message: "utente eliminato con successo" });
+  } catch (error) {
+    res.status(404).json({ code: res.statusCode, message: error.message });
+  }
 };
 
 export const updateUser = (req, res) => {
