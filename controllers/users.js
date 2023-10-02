@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { User } from "../models/user.js";
 
 let users = [];
 
@@ -6,12 +7,18 @@ export const getAllUser = (req, res) => {
   res.send(users);
 };
 
-export const insertUser = (req, res) => {
+export const insertUser = async (req, res) => {
   const user = req.body;
-  const id = uuidv4();
-  const userWithID = { ...user, id: id };
-  users.push(userWithID);
-  res.send(`Utente con email ${user.email} è stato aggiunto con successo`);
+
+  const newUser = new User(user);
+
+  try {
+    await newUser.save();
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(409).json({ message: error.message });
+  }
 };
 
 export const getUserByID = (req, res) => {

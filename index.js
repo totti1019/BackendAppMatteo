@@ -6,7 +6,7 @@ import usersRouters from "./routers/users.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const CONNECCTION_URL = "mongodb://localhost:27017/pricer";
+const CONNECCTION_URL = "mongodb://0.0.0.0:27017/pricer";
 
 app.use(express.json());
 app.use("/users", usersRouters);
