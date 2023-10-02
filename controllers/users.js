@@ -49,20 +49,23 @@ export const deleteUser = async (req, res) => {
 
   try {
     await User.findByIdAndDelete(id);
-    res.json({ message: "utente eliminato con successo" });
+    res.status(200).json({ message: "utente eliminato con successo" });
   } catch (error) {
     res.status(404).json({ code: res.statusCode, message: error.message });
   }
 };
 
-export const updateUser = (req, res) => {
+export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { nome, cognome, email } = req.body;
+  const data = { ...req.body };
 
-  const userTrovato = users.find((user) => user.id === id);
-  if (nome) userTrovato.nome = nome;
-  if (cognome) userTrovato.cognome = cognome;
-  if (email) userTrovato.email = email;
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return res.status(404).json({ message: "id non conforme con mongo" });
 
-  res.send(`Utente con id ${id} è stato modificato con successo`);
+  try {
+    const user = await User.findByIdAndUpdate(id, data, { new: true });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ code: res.statusCode, message: error.message });
+  }
 };
