@@ -3,8 +3,14 @@ import { User } from "../models/user.js";
 
 let users = [];
 
-export const getAllUser = (req, res) => {
-  res.send(users);
+export const getAllUser = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(404).json({ message: error.message, code: error.code });
+  }
 };
 
 export const insertUser = async (req, res) => {
@@ -17,15 +23,19 @@ export const insertUser = async (req, res) => {
 
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(409).json({ message: error.message });
+    res.status(409).json({ message: error.message, code: error.code });
   }
 };
 
-export const getUserByID = (req, res) => {
+export const getUserByID = async (req, res) => {
   const { id } = req.params;
-  const userTrovato = users.find((user) => user.id === id);
-  const response = userTrovato == null ? [] : userTrovato;
-  res.send(response);
+  try {
+    const user = await User.findById(id);
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ message: error.message, code: error.code });
+  }
 };
 
 export const deleteUser = (req, res) => {
