@@ -4,15 +4,20 @@ const userSchema = mongoose.Schema(
   {
     nome: {
       type: String,
-      required: true,
+      required: false,
     },
     cognome: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
       required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      require: true,
     },
   },
   { timestamps: true }
