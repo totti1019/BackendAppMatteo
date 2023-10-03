@@ -26,22 +26,22 @@ export const login = async (req, res) => {
 };
 
 async function verifyGoogleToken(req, res, email, id) {
-  const ticket = await client.verifyIdToken({
-    idToken: id,
-    audience: process.env.CLIENT_ID_GOOGLE,
-  });
-  const payload = ticket.getPayload();
-  const userid = payload["sub"];
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    const passwordHashed = await bcrypt.hash(userid, 10);
-
-    const user = new User({
-      email: email,
-      id: passwordHashed,
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: id,
+      audience: process.env.CLIENT_ID_GOOGLE,
     });
-    try {
+    const payload = ticket.getPayload();
+    const userid = payload["sub"];
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      const passwordHashed = await bcrypt.hash(userid, 10);
+
+      const user = new User({
+        email: email,
+        id: passwordHashed,
+      });
       await user.save();
 
       if (await bcrypt.compare(userid, user.id)) {
@@ -51,13 +51,7 @@ async function verifyGoogleToken(req, res, email, id) {
         );
         return res.status(200).json({ code: res.statusCode, jwt: token });
       }
-    } catch (error) {
-      return res
-        .status(409)
-        .json({ code: res.statusCode, message: error.message });
     }
-  }
-  try {
     if (await bcrypt.compare(userid, user.id)) {
       const token = jwt.sign(
         { id: user._id, username: user.email },
@@ -70,10 +64,6 @@ async function verifyGoogleToken(req, res, email, id) {
       .status(409)
       .json({ code: res.statusCode, message: error.message });
   }
-
-  return res
-    .status(401)
-    .json({ code: res.statusCode, message: "Utente/password errata" });
 }
 
 export const register = async (req, res) => {
