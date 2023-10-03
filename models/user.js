@@ -1,26 +1,40 @@
-import mongoose from "mongoose";
+//Require mongoose, assport-local-mongoose, mongoose-findorcreate
+const mongoose = require("mongoose");
+const passportLocalMongoose = require("passport-local-mongoose");
+const findOrCreate = require("mongoose-findorcreate");
 
-const userSchema = mongoose.Schema(
-  {
-    nome: {
-      type: String,
-      required: false,
-    },
-    cognome: {
-      type: String,
-      required: false,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      require: true,
+//Create User Schema
+const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    unique: true,
+    trim: true,
+    lowercase: true,
+    validate: {
+      validator: function (email) {
+        return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+      },
+      message: "Please enter a valid email.",
     },
   },
-  { timestamps: true }
-);
+  password: {
+    type: String,
+    trim: true,
+    min: 6,
+  },
+  googleId: {
+    type: String,
+  },
+  facebookId: {
+    type: String,
+  },
+});
 
-export const User = mongoose.model("User", userSchema);
+//Add passportLocalMongoose Plugin to hash and salt user password
+userSchema.plugin(passportLocalMongoose);
+
+//Add findOrCreate mongoose Plugin
+userSchema.plugin(findOrCreate);
+
+//Export User Model
+module.exports = mongoose.model("User", userSchema);

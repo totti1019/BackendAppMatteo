@@ -1,6 +1,8 @@
 import { mongoose } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
-import { User } from "../models/user.js";
+
+//Require User Model
+const User = require("../models/user");
 
 let users = [];
 
