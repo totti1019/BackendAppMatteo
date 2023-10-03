@@ -3,15 +3,17 @@ import mongoose from "mongoose";
 import cors from "cors";
 
 import usersRouters from "./routers/users.js";
-import usersAuth from "./routers/auth.js";
+import authRoutes from "./routers/auth.js";
+
+import { authenticateToken } from "./middlewares/auth.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CONNECCTION_URL = "mongodb://0.0.0.0:27017/pricer";
 
 app.use(express.json());
-app.use("/users", usersRouters);
-app.use("/auth", usersAuth);
+app.use("/users", authenticateToken, usersRouters);
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Benvenuto nella homepage");
