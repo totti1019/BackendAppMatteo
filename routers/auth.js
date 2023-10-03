@@ -14,6 +14,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"; */
 
 //Require express router, passport, passport-google-oauth20, passport-facebook
+require("dotenv").config();
 const router = require("express").Router();
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
@@ -39,8 +40,8 @@ passport.deserializeUser(function (id, done) {
 passport.use(
   new GoogleStrategy(
     {
-      clientID: "test",
-      clientSecret: "test2",
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "http://localhost:3000/auth/google/secret",
     },
     function (accessToken, refreshToken, profile, cb) {

@@ -1,5 +1,5 @@
 //Require necessary packages
-const dotenv = require("dotenv");
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -17,7 +17,6 @@ const secretRoute = require("./routers/secrets");
 const authenticateToken = require("./middlewares/auth");
 
 const app = express();
-dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 //Setup view engine EJS, use body-parser and express static
@@ -51,6 +50,7 @@ mongoose
 
 app.use(express.json());
 app.use("/auth", authRoute);
+app.use("/", secretRoute);
 //app.use("/users", authenticateToken, usersRouters);
 
 app.get("/", (req, res) => {

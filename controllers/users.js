@@ -2,7 +2,7 @@ import { mongoose } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 //Require User Model
-const User = require("../models/user");
+const User = require("../models/User");
 
 let users = [];
 
