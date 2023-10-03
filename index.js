@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import dotenv from "dotenv";
 
 import usersRouters from "./routers/users.js";
 import authRoutes from "./routers/auth.js";
@@ -8,8 +9,8 @@ import authRoutes from "./routers/auth.js";
 import { authenticateToken } from "./middlewares/auth.js";
 
 const app = express();
+dotenv.config();
 const PORT = process.env.PORT || 3000;
-const CONNECCTION_URL = "mongodb://0.0.0.0:27017/pricer";
 
 app.use(express.json());
 app.use("/users", authenticateToken, usersRouters);
@@ -20,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 mongoose
-  .connect(CONNECCTION_URL)
+  .connect(process.env.CONNECTION_URL)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`server listening on ${PORT}`); // npm run dev

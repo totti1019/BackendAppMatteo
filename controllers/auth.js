@@ -3,9 +3,6 @@ import { User } from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET =
-  "cdgyskCBKS369321T4RBFTCG6WMDFCDBJZAOQEJKQEJKQEJKFBvfegywuof98";
-
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -17,7 +14,10 @@ export const login = async (req, res) => {
       .json({ code: res.statusCode, message: "Utente/password errata" });
 
   if (await bcrypt.compare(password, user.password)) {
-    const token = jwt.sign({ id: user._id, username: user.email }, JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, username: user.email },
+      process.env.JWT_SECRET
+    );
     return res.status(200).json({ code: res.statusCode, data: token });
   }
 
