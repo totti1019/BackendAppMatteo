@@ -30,10 +30,14 @@ passport.use(User.createStrategy());
 passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
-passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
-    done(err, user);
-  });
+
+passport.deserializeUser(async function (id, done) {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
 
 //Configure Google Strategy
@@ -71,23 +75,21 @@ passport.use(
 );
 
 //Google auth route
+router.get("/google", passport.authenticate("google", { scope: ["profile"] }));
 router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile"] })
-);
-router.get(
-  "/auth/google/secret",
+  "/google/secret",
   passport.authenticate("google", { failureRedirect: "/login" }),
   function (req, res) {
     // Successful authentication, redirect secrets page.
+    console.log("SONO QUI");
     res.redirect("/secrets");
   }
 );
 
 //Facebook auth route
-router.get("/auth/facebook", passport.authenticate("facebook"));
+router.get("/facebook", passport.authenticate("facebook"));
 router.get(
-  "/auth/facebook/secret",
+  "/facebook/secret",
   passport.authenticate("facebook", { failureRedirect: "/login" }),
   function (req, res) {
     // Successful authentication, redirect secrets page.
@@ -96,7 +98,7 @@ router.get(
 );
 
 //Local route Register new user
-router.post("/auth/register", async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     //Register User
     const registerUser = await User.register(
@@ -118,7 +120,7 @@ router.post("/auth/register", async (req, res) => {
 });
 
 //Local route Login user
-router.post("/auth/login", (req, res) => {
+router.post("/login", (req, res) => {
   //create new user
   const user = new User({
     username: req.body.username,
@@ -137,7 +139,7 @@ router.post("/auth/login", (req, res) => {
 });
 
 //Logout user
-router.get("/auth/logout", (req, res) => {
+router.get("/logout", (req, res) => {
   //use passport logout method to end user session and unauthenticate it
   req.logout();
   res.redirect("/");

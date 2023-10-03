@@ -36,6 +36,7 @@ router.get("/login", (req, res) => {
 router.get("/secrets", async (req, res) => {
   try {
     const allSecrets = await Secret.find();
+    console.log("TEST");
     res.render("secrets", { allSecrets, isAuth: req.isAuthenticated() });
   } catch (err) {
     res.send(err);
