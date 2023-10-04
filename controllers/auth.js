@@ -1,13 +1,14 @@
-import { mongoose } from "mongoose";
-import { User } from "../models/user.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+const mongoose = require("mongoose");
 
-import { OAuth2Client } from "google-auth-library";
+const User = require("../models/user");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client();
 
-export const login = async (req, res) => {
+const login = async (req, res) => {
   const { email, id } = req.body;
 
   if (!email || typeof email !== "string") {
@@ -66,7 +67,7 @@ async function verifyGoogleToken(req, res, email, id) {
   }
 }
 
-export const register = async (req, res) => {
+const register = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || typeof email !== "string") {
@@ -96,4 +97,9 @@ export const register = async (req, res) => {
   } catch (error) {
     res.status(409).json({ code: res.statusCode, message: error.message });
   }
+};
+
+module.exports = {
+  login,
+  register,
 };
