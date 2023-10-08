@@ -108,7 +108,7 @@ const login = async (req, res) => {
     });
     await user.save();
 
-    if (await bcrypt.compare(password, user.id)) {
+    if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
         { id: user._id, username: user.email },
         process.env.JWT_SECRET
@@ -116,7 +116,7 @@ const login = async (req, res) => {
       return res.status(200).json({ code: res.statusCode, jwt: token });
     }
   }
-  if (await bcrypt.compare(id, user.id)) {
+  if (await bcrypt.compare(password, user.password)) {
     const token = jwt.sign(
       { id: user._id, username: user.email },
       process.env.JWT_SECRET
