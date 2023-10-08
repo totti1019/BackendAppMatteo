@@ -10,7 +10,7 @@ const client = new OAuth2Client();
 
 // METODO PER IL LOGIN DI GOOGLE
 const loginGoogle = async (req, res) => {
-  const { email, id } = req.body;
+  const { email, id, fullName } = req.body;
 
   if (!email || typeof email !== "string") {
     return res
@@ -24,10 +24,16 @@ const loginGoogle = async (req, res) => {
       .json({ code: res.statusCode, message: "Password non valida" });
   }
 
-  verifyGoogleToken(req, res, email, id);
+  if (!fullName || typeof fullName !== "string") {
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Nominativo mancante" });
+  }
+
+  verifyGoogleToken(req, res, email, id, fullName);
 };
 
-async function verifyGoogleToken(req, res, email, id) {
+async function verifyGoogleToken(req, res, email, id, fullName) {
   try {
     const ticket = await client.verifyIdToken({
       idToken: id,
@@ -41,6 +47,7 @@ async function verifyGoogleToken(req, res, email, id) {
       const passwordHashed = await bcrypt.hash(userid, 10);
 
       const user = new User({
+        fullName: fullName,
         email: email,
         id: passwordHashed,
       });
@@ -70,7 +77,7 @@ async function verifyGoogleToken(req, res, email, id) {
 
 // METODO PER IL LOGIN CON EMAIL E PASSWORD
 const login = async (req, res) => {
-  const { email, id } = req.body;
+  const { email, password, fullName } = req.body;
 
   if (!email || typeof email !== "string") {
     return res
@@ -78,23 +85,30 @@ const login = async (req, res) => {
       .json({ code: res.statusCode, message: "Email non valida" });
   }
 
-  if (!id || typeof id !== "string") {
+  if (!password || typeof password !== "string") {
     return res
       .status(404)
       .json({ code: res.statusCode, message: "Password non valida" });
   }
 
+  if (!fullName || typeof fullName !== "string") {
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Nominativo mancante" });
+  }
+
   const user = await User.findOne({ email });
   if (!user) {
-    const passwordHashed = await bcrypt.hash(id, 10);
+    const passwordHashed = await bcrypt.hash(password, 10);
 
     const user = new User({
+      fullName: fullName,
       email: email,
-      id: passwordHashed,
+      password: passwordHashed,
     });
     await user.save();
 
-    if (await bcrypt.compare(id, user.id)) {
+    if (await bcrypt.compare(password, user.id)) {
       const token = jwt.sign(
         { id: user._id, username: user.email },
         process.env.JWT_SECRET
@@ -113,7 +127,7 @@ const login = async (req, res) => {
 
 // METODO PER LA REGISTRAZIONE
 const register = async (req, res) => {
-  const { email, id } = req.body;
+  const { email, password, fullName } = req.body;
 
   if (!email || typeof email !== "string") {
     return res
@@ -121,15 +135,22 @@ const register = async (req, res) => {
       .json({ code: res.statusCode, message: "Email non valida" });
   }
 
-  if (!id || typeof id !== "string") {
+  if (!password || typeof password !== "string") {
     return res
       .status(404)
       .json({ code: res.statusCode, message: "Password non valida" });
   }
 
-  const passwordHashed = await bcrypt.hash(id, 10);
+  if (!fullName || typeof fullName !== "string") {
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Nominativo mancante" });
+  }
+
+  const passwordHashed = await bcrypt.hash(password, 10);
 
   const user = new User({
+    fullName: fullName,
     email: email,
     password: passwordHashed,
   });
