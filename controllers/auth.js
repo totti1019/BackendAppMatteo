@@ -8,7 +8,8 @@ const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client();
 
-const login = async (req, res) => {
+// METODO PER IL LOGIN DI GOOGLE
+const loginGoogle = async (req, res) => {
   const { email, id } = req.body;
 
   if (!email || typeof email !== "string") {
@@ -67,8 +68,9 @@ async function verifyGoogleToken(req, res, email, id) {
   }
 }
 
-const register = async (req, res) => {
-  const { email, password } = req.body;
+// METODO PER IL LOGIN CON EMAIL E PASSWORD
+const login = async (req, res) => {
+  const { email, id } = req.body;
 
   if (!email || typeof email !== "string") {
     return res
@@ -76,13 +78,56 @@ const register = async (req, res) => {
       .json({ code: res.statusCode, message: "Email non valida" });
   }
 
-  if (!password || typeof password !== "string") {
+  if (!id || typeof id !== "string") {
     return res
       .status(404)
       .json({ code: res.statusCode, message: "Password non valida" });
   }
 
-  const passwordHashed = await bcrypt.hash(password, 10);
+  const user = await User.findOne({ email });
+  if (!user) {
+    const passwordHashed = await bcrypt.hash(id, 10);
+
+    const user = new User({
+      email: email,
+      id: passwordHashed,
+    });
+    await user.save();
+
+    if (await bcrypt.compare(id, user.id)) {
+      const token = jwt.sign(
+        { id: user._id, username: user.email },
+        process.env.JWT_SECRET
+      );
+      return res.status(200).json({ code: res.statusCode, jwt: token });
+    }
+  }
+  if (await bcrypt.compare(id, user.id)) {
+    const token = jwt.sign(
+      { id: user._id, username: user.email },
+      process.env.JWT_SECRET
+    );
+    return res.status(200).json({ code: res.statusCode, jwt: token });
+  }
+};
+
+// METODO PER LA REGISTRAZIONE
+const register = async (req, res) => {
+  const { email, id } = req.body;
+
+  if (!email || typeof email !== "string") {
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Email non valida" });
+  }
+
+  if (!id || typeof id !== "string") {
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Password non valida" });
+  }
+
+  const passwordHashed = await bcrypt.hash(id, 10);
 
   const user = new User({
     email: email,
@@ -101,5 +146,6 @@ const register = async (req, res) => {
 
 module.exports = {
   login,
+  loginGoogle,
   register,
 };
