@@ -99,22 +99,9 @@ const login = async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    const passwordHashed = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      fullName: fullName,
-      email: email,
-      password: passwordHashed,
-    });
-    await user.save();
-
-    if (await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign(
-        { id: user._id, username: user.email },
-        process.env.JWT_SECRET
-      );
-      return res.status(200).json({ code: res.statusCode, jwt: token });
-    }
+    return res
+      .status(404)
+      .json({ code: res.statusCode, message: "Utente non registrato" });
   }
   if (await bcrypt.compare(password, user.password)) {
     const token = jwt.sign(
