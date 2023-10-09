@@ -91,12 +91,6 @@ const login = async (req, res) => {
       .json({ code: res.statusCode, message: "Password non valida" });
   }
 
-  if (!fullName || typeof fullName !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Nominativo mancante" });
-  }
-
   const user = await User.findOne({ email });
   if (!user) {
     return res
