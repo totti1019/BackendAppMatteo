@@ -104,6 +104,9 @@ const login = async (req, res) => {
     );
     return res.status(200).json({ code: res.statusCode, jwt: token });
   }
+  return res
+    .status(404)
+    .json({ code: res.statusCode, message: "Email o Password errata" });
 };
 
 // METODO PER LA REGISTRAZIONE
