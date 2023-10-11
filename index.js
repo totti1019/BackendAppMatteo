@@ -10,6 +10,8 @@ const authRoutes = require("./routers/auth");
 
 const { authenticateToken } = require("./middlewares/auth");
 
+const amazonRoutes = require("./routers/amazon");
+
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use("/users", authenticateToken, usersRouters);
 app.use("/auth", authRoutes);
+app.use("/amazon", authenticateToken, amazonRoutes);
 
 app.get("/", (req, res) => {
   res.send("Benvenuto nella homepage di Pricer");
