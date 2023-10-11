@@ -9,6 +9,9 @@ var client = amazon.createClient({
 const searchAmazon = async (req, res) => {
   const { searchKeywords } = req.body;
   console.log(`Searching ${searchKeywords}`);
+  return res
+    .status(200)
+    .json({ code: res.statusCode, message: `Searching ${searchKeywords}` });
   client
     .itemSearch({
       keywords: searchKeywords,
