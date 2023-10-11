@@ -19,7 +19,7 @@ app.use("/users", authenticateToken, usersRouters);
 app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Benvenuto nella homepage");
+  res.send("Benvenuto nella homepage di Pricer");
 });
 
 mongoose
