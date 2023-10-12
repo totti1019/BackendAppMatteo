@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const localizable = require("../locales/localizables");
-const validator = require("validator");
+
+const { check, validationResult } = require("express-validator");
 
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
@@ -12,27 +13,16 @@ const client = new OAuth2Client();
 
 // METODO PER IL LOGIN DI GOOGLE
 const loginGoogle = async (req, res) => {
-  const { email, id, fullName } = req.body;
+  // Esegui la convalida
+  const errors = validationResult(req);
 
-  if (!email || typeof email !== "string") {
+  if (!errors.isEmpty()) {
     return res
-      .status(404)
-      .json({ code: res.statusCode, message: localizable.emailNonValida });
+      .status(400)
+      .json({ code: res.statusCode, message: errors.array() });
   }
 
-  if (!id || typeof id !== "string") {
-    return res.status(404).json({
-      code: res.statusCode,
-      message: localizable.passwordNonValida,
-    });
-  }
-
-  if (!fullName || typeof fullName !== "string") {
-    return res.status(404).json({
-      code: res.statusCode,
-      message: localizable.nominativoMancante,
-    });
-  }
+  const { email, id, fullName } = req.body;
 
   verifyGoogleToken(req, res, email, id, fullName);
 };
@@ -81,20 +71,16 @@ async function verifyGoogleToken(req, res, email, id, fullName) {
 
 // METODO PER IL LOGIN CON EMAIL E PASSWORD
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  // Esegui la convalida
+  const errors = validationResult(req);
 
-  if (!email || typeof email !== "string") {
+  if (!errors.isEmpty()) {
     return res
-      .status(404)
-      .json({ code: res.statusCode, message: localizable.emailNonValida });
+      .status(400)
+      .json({ code: res.statusCode, message: errors.array() });
   }
 
-  if (!password || typeof password !== "string") {
-    return res.status(404).json({
-      code: res.statusCode,
-      message: localizable.passwordNonValida,
-    });
-  }
+  const { email, password } = req.body;
 
   const user = await User.findOne({ email });
   if (!user) {
@@ -118,35 +104,20 @@ const login = async (req, res) => {
 
 // METODO PER LA REGISTRAZIONE
 const register = async (req, res) => {
+  // Esegui la convalida
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ code: res.statusCode, message: errors.array() });
+  }
+
   const { email, password, fullName } = req.body;
 
-  // Sanifica i campi uno per uno
-  const sanitizedEmail = validator.escape(email);
-  const sanitizedFullName = validator.escape(fullName);
+  const userFind = await User.findOne({ email });
 
-  if (!sanitizedEmail || typeof sanitizedEmail !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: localizable.emailNonValida });
-  }
-
-  // La password non deve essere sanificata tanto viene hashata
-  if (!password || typeof password !== "string") {
-    return res.status(404).json({
-      code: res.statusCode,
-      message: localizable.passwordNonValida,
-    });
-  }
-
-  if (!sanitizedFullName || typeof sanitizedFullName !== "string") {
-    return res.status(404).json({
-      code: res.statusCode,
-      message: localizable.nominativoMancante,
-    });
-  }
-
-  const userFind = await User.findOne({ sanitizedEmail });
-
+  // Se trovo già l'utente salvato invio messaggio
   if (userFind) {
     return res.status(409).json({
       code: res.statusCode,
@@ -156,8 +127,8 @@ const register = async (req, res) => {
   const passwordHashed = await bcrypt.hash(password, 10);
 
   const user = new User({
-    fullName: sanitizedFullName,
-    email: sanitizedEmail,
+    fullName: fullName,
+    email: email,
     password: passwordHashed,
   });
   try {
