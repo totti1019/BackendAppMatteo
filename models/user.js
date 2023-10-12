@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
+
+const localizable = require("../locales/localizables");
 
 const userSchema = mongoose.Schema(
   {
@@ -10,6 +13,10 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      validate: {
+        validator: (value) => validator.isEmail(value),
+        message: localizable.emailNonValida,
+      },
     },
     id: {
       type: String,

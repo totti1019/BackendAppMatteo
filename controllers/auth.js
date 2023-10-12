@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const localizable = require("../locales/localizables");
+const validator = require("validator");
 
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
@@ -15,19 +17,21 @@ const loginGoogle = async (req, res) => {
   if (!email || typeof email !== "string") {
     return res
       .status(404)
-      .json({ code: res.statusCode, message: "Email non valida" });
+      .json({ code: res.statusCode, message: localizable.emailNonValida });
   }
 
   if (!id || typeof id !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Password non valida" });
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.passwordNonValida,
+    });
   }
 
   if (!fullName || typeof fullName !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Nominativo mancante" });
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.nominativoMancante,
+    });
   }
 
   verifyGoogleToken(req, res, email, id, fullName);
@@ -77,25 +81,27 @@ async function verifyGoogleToken(req, res, email, id, fullName) {
 
 // METODO PER IL LOGIN CON EMAIL E PASSWORD
 const login = async (req, res) => {
-  const { email, password, fullName } = req.body;
+  const { email, password } = req.body;
 
   if (!email || typeof email !== "string") {
     return res
       .status(404)
-      .json({ code: res.statusCode, message: "Email non valida" });
+      .json({ code: res.statusCode, message: localizable.emailNonValida });
   }
 
   if (!password || typeof password !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Password non valida" });
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.passwordNonValida,
+    });
   }
 
   const user = await User.findOne({ email });
   if (!user) {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Utente non registrato" });
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.utenteNonRegistrato,
+    });
   }
   if (await bcrypt.compare(password, user.password)) {
     const token = jwt.sign(
@@ -104,48 +110,74 @@ const login = async (req, res) => {
     );
     return res.status(200).json({ code: res.statusCode, jwt: token });
   }
-  return res
-    .status(404)
-    .json({ code: res.statusCode, message: "Email o Password errata" });
+  return res.status(404).json({
+    code: res.statusCode,
+    message: localizable.emailPasswordErrata,
+  });
 };
 
 // METODO PER LA REGISTRAZIONE
 const register = async (req, res) => {
   const { email, password, fullName } = req.body;
 
-  if (!email || typeof email !== "string") {
+  // Sanifica i campi uno per uno
+  const sanitizedEmail = validator.escape(email);
+  const sanitizedFullName = validator.escape(fullName);
+
+  if (!sanitizedEmail || typeof sanitizedEmail !== "string") {
     return res
       .status(404)
-      .json({ code: res.statusCode, message: "Email non valida" });
+      .json({ code: res.statusCode, message: localizable.emailNonValida });
   }
 
+  // La password non deve essere sanificata tanto viene hashata
   if (!password || typeof password !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Password non valida" });
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.passwordNonValida,
+    });
   }
 
-  if (!fullName || typeof fullName !== "string") {
-    return res
-      .status(404)
-      .json({ code: res.statusCode, message: "Nominativo mancante" });
+  if (!sanitizedFullName || typeof sanitizedFullName !== "string") {
+    return res.status(404).json({
+      code: res.statusCode,
+      message: localizable.nominativoMancante,
+    });
   }
 
+  const userFind = await User.findOne({ sanitizedEmail });
+
+  if (userFind) {
+    return res.status(409).json({
+      code: res.statusCode,
+      message: localizable.utenteRegistratoEffettuaLogin,
+    });
+  }
   const passwordHashed = await bcrypt.hash(password, 10);
 
   const user = new User({
-    fullName: fullName,
-    email: email,
+    fullName: sanitizedFullName,
+    email: sanitizedEmail,
     password: passwordHashed,
   });
   try {
     await user.save();
-    res.status(201).json({
+    return res.status(201).json({
       code: res.statusCode,
-      message: "Registrato con successo",
+      message: localizable.registratoConSuccesso,
     });
   } catch (error) {
-    res.status(409).json({ code: res.statusCode, message: error.message });
+    let errorMessage = error.message;
+    if (
+      error.name === "ValidationError" &&
+      error.errors &&
+      error.errors.email
+    ) {
+      errorMessage = error.errors.email.message;
+    }
+    return res
+      .status(409)
+      .json({ code: res.statusCode, message: errorMessage });
   }
 };
 
